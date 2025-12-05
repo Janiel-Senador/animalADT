@@ -17,23 +17,38 @@ const INITIAL_ITEMS: RequestItem[] = [
     id: '2',
     type: 'adoption',
     position: [10.3500, 123.9000], // IT Park area roughly
-    title: 'Golden Retriever Puppy',
-    description: '3 months old, needs a loving home.',
+    title: 'Adopt Goldie',
+    description: 'Dog needs a home.',
+    petType: 'Dog',
+    petName: 'Goldie',
+    contactNumber: '09171234567',
+    facebook: 'fb.com/janedoe',
+    email: 'jane@example.com',
     connectedTo: '1' // Connected to Ayala Meetup
   },
   {
     id: '3',
     type: 'food',
     position: [10.2900, 123.8800], // Downtown area
-    title: 'Cat Food Needed',
-    description: 'Stray cats in Carbon market need food.',
+    title: 'Food Request: Cat',
+    description: '2kg of Dry needed.',
+    petType: 'Cat',
+    foodType: 'Dry',
+    foodAmount: '2kg',
+    contactNumber: '09187654321',
   },
   {
     id: '4',
     type: 'donation',
     position: [10.3300, 123.9200], // Mandaue area
-    title: 'Emergency Vet Bill',
+    title: 'Donation: Brownie',
     description: 'Dog with broken leg needs surgery.',
+    petType: 'Dog',
+    petName: 'Brownie',
+    ownerName: 'John Smith',
+    donationReason: 'Dog with broken leg needs surgery.',
+    contactNumber: '09198887777',
+    facebook: 'fb.com/johnsmith',
   }
 ];
 
@@ -90,9 +105,11 @@ function App() {
         <div className="absolute bottom-8 left-8 bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-lg z-[500] max-w-xs">
           <h3 className="font-bold text-gray-800 mb-2">How to use:</h3>
           <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
-            <li>Click anywhere on the map to add a request.</li>
-            <li>Green lines connect Adoptions to Meetup points.</li>
-            <li>Explore pins to help pets in Cebu!</li>
+            <li>Click map to add request.</li>
+            <li>Green: Adoption (Connect to Meetup!)</li>
+            <li>Violet: Food Request</li>
+            <li>Red: Donation/Medical</li>
+            <li>Yellow: Meetup Points</li>
           </ul>
         </div>
       </div>

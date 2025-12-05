@@ -2,6 +2,7 @@ import { type FC } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
 import { DivIcon } from 'leaflet';
 import { REQUEST_COLORS, type RequestItem } from '../types';
+import { Phone, Facebook, Mail, User } from 'lucide-react';
 
 // Fix for default marker icons in Leaflet with React
 import 'leaflet/dist/leaflet.css';
@@ -49,7 +50,6 @@ const createCustomIcon = (color: string) => {
 
 const MapComponent: FC<MapProps> = ({ items, onMapClick }) => {
   // Filter for connections (Adoption -> Meetup)
-  // We need to find items that have a 'connectedTo' property
   const connections = items
     .filter(item => item.connectedTo)
     .map(source => {
@@ -59,7 +59,7 @@ const MapComponent: FC<MapProps> = ({ items, onMapClick }) => {
           source,
           target,
           positions: [source.position, target.position] as [number, number][],
-          color: REQUEST_COLORS[source.type] // Color of the source (e.g., green for adoption)
+          color: REQUEST_COLORS[source.type]
         };
       }
       return null;
@@ -100,12 +100,58 @@ const MapComponent: FC<MapProps> = ({ items, onMapClick }) => {
           icon={createCustomIcon(REQUEST_COLORS[item.type])}
         >
           <Popup>
-            <div className="p-1">
-              <h3 className="font-bold text-lg capitalize mb-1" style={{ color: REQUEST_COLORS[item.type] }}>
+            <div className="p-1 min-w-[200px]">
+              <h3 className="font-bold text-lg capitalize mb-1 flex items-center gap-2" style={{ color: REQUEST_COLORS[item.type] }}>
                 {item.type}
               </h3>
-              <p className="font-semibold">{item.title}</p>
-              <p className="text-sm text-gray-600">{item.description}</p>
+              
+              {/* Title & Description (Generic or Generated) */}
+              {item.title && <p className="font-semibold mb-1">{item.title}</p>}
+              {item.description && <p className="text-sm text-gray-600 mb-2 italic">{item.description}</p>}
+
+              {/* Specific Fields Display */}
+              {item.type === 'food' && (
+                <div className="text-sm mb-2 bg-violet-50 p-2 rounded">
+                  <p><strong>Food:</strong> {item.foodType}</p>
+                  <p><strong>Amount:</strong> {item.foodAmount}</p>
+                </div>
+              )}
+
+              {item.type === 'donation' && item.ownerName && (
+                 <div className="text-sm mb-2 flex items-center gap-1 text-gray-700">
+                   <User size={14} /> <span>{item.ownerName}</span>
+                 </div>
+              )}
+
+              {/* Contact Info Section */}
+              {(item.contactNumber || item.facebook || item.email) && (
+                <div className="mt-2 pt-2 border-t border-gray-200 text-xs space-y-1">
+                  <p className="font-semibold text-gray-500">Contact Info:</p>
+                  
+                  {item.contactNumber && (
+                    <div className="flex items-center gap-2">
+                      <Phone size={12} className="text-gray-400" />
+                      <span>{item.contactNumber}</span>
+                    </div>
+                  )}
+                  
+                  {item.facebook && (
+                    <div className="flex items-center gap-2">
+                      <Facebook size={12} className="text-blue-600" />
+                      <a href={item.facebook.startsWith('http') ? item.facebook : `https://${item.facebook}`} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline truncate max-w-[150px]">
+                        {item.facebook}
+                      </a>
+                    </div>
+                  )}
+                  
+                  {item.email && (
+                    <div className="flex items-center gap-2">
+                      <Mail size={12} className="text-gray-400" />
+                      <span>{item.email}</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </Popup>
         </Marker>
