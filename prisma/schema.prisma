@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING") // Uses Vercel Postgres direct URL for migrations
+}
+
+model Request {
+  id             String   @id @default(cuid())
+  type           String
+  lat            Float
+  lng            Float
+  title          String?
+  description    String?
+  contactNumber  String?
+  facebook       String?
+  email          String?
+  ownerName      String?
+  petType        String?
+  petName        String?
+  foodType       String?
+  foodAmount     String?
+  donationReason String?
+  connectedTo    String?
+  createdAt      DateTime @default(now())
+}

@@ -1,79 +1,78 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MapComponent from './components/Map';
 import RequestForm from './components/RequestForm';
 import type { RequestItem } from './types';
 import { Heart } from 'lucide-react';
 
-// Mock Data
-const INITIAL_ITEMS: RequestItem[] = [
-  {
-    id: '1',
-    type: 'meetup',
-    position: [10.3180, 123.9050], // Near Ayala
-    title: 'Ayala Center Meetup Point',
-    description: 'Safe meetup spot for adoptions.',
-  },
-  {
-    id: '2',
-    type: 'adoption',
-    position: [10.3500, 123.9000], // IT Park area roughly
-    title: 'Adopt Goldie',
-    description: 'Dog needs a home.',
-    petType: 'Dog',
-    petName: 'Goldie',
-    contactNumber: '09171234567',
-    facebook: 'fb.com/janedoe',
-    email: 'jane@example.com',
-    connectedTo: '1' // Connected to Ayala Meetup
-  },
-  {
-    id: '3',
-    type: 'food',
-    position: [10.2900, 123.8800], // Downtown area
-    title: 'Food Request: Cat',
-    description: '2kg of Dry needed.',
-    petType: 'Cat',
-    foodType: 'Dry',
-    foodAmount: '2kg',
-    contactNumber: '09187654321',
-  },
-  {
-    id: '4',
-    type: 'donation',
-    position: [10.3300, 123.9200], // Mandaue area
-    title: 'Donation: Brownie',
-    description: 'Dog with broken leg needs surgery.',
-    petType: 'Dog',
-    petName: 'Brownie',
-    ownerName: 'John Smith',
-    donationReason: 'Dog with broken leg needs surgery.',
-    contactNumber: '09198887777',
-    facebook: 'fb.com/johnsmith',
-  }
-];
-
 function App() {
-  const [items, setItems] = useState<RequestItem[]>(INITIAL_ITEMS);
+  const [items, setItems] = useState<RequestItem[]>([]);
   const [selectedPosition, setSelectedPosition] = useState<[number, number] | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch data from API
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const response = await fetch('/api/requests');
+        if (!response.ok) throw new Error('Failed to fetch');
+        const data = await response.json();
+        
+        // Transform DB data (lat/lng) back to frontend format (position array)
+        const formattedItems = data.map((item: any) => ({
+          ...item,
+          position: [item.lat, item.lng],
+        }));
+        
+        setItems(formattedItems);
+      } catch (error) {
+        console.error('Error fetching requests:', error);
+        // Fallback to empty or keep mock data logic if desired
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchItems();
+  }, []);
 
   const handleMapClick = (position: [number, number]) => {
     setSelectedPosition(position);
     setShowForm(true);
   };
 
-  const handleAddItem = (data: Omit<RequestItem, 'id' | 'position'>) => {
+  const handleAddItem = async (data: Omit<RequestItem, 'id' | 'position'>) => {
     if (!selectedPosition) return;
-    
-    const newItem: RequestItem = {
-      id: Date.now().toString(),
+
+    const payload = {
+      ...data,
       position: selectedPosition,
-      ...data
     };
-    
-    setItems(prev => [...prev, newItem]);
-    setShowForm(false);
-    setSelectedPosition(null);
+
+    try {
+      const response = await fetch('/api/requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        const savedItem = await response.json();
+        // Update local state immediately
+        const newItem: RequestItem = {
+          ...savedItem,
+          position: [savedItem.lat, savedItem.lng],
+        };
+        setItems(prev => [...prev, newItem]);
+        setShowForm(false);
+        setSelectedPosition(null);
+      }
+    } catch (error) {
+      console.error('Error saving request:', error);
+      alert('Failed to save request. Please try again.');
+    }
   };
 
   return (
@@ -101,6 +100,13 @@ function App() {
           onMapClick={handleMapClick} 
         />
         
+        {/* Loading Indicator */}
+        {isLoading && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded shadow-lg z-[1000]">
+            Loading data...
+          </div>
+        )}
+
         {/* Instructions Overlay */}
         <div className="absolute bottom-8 left-8 bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-lg z-[500] max-w-xs">
           <h3 className="font-bold text-gray-800 mb-2">How to use:</h3>
